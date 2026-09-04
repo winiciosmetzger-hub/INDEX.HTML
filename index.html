@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Uma disputa divertida para descobrir quem ama mais.">
+	<title>Quem ama mais?</title>
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700;800&display=swap');
+
+		:root {
+			--pink-rose: #f15983;
+			--pink-hot: #e83469;
+			--pink-soft: #fff1f5;
+			--ink: #3b1d2a;
+			--muted: #946b79;
+			--white: #fffafb;
+			--line: rgba(154, 55, 86, 0.14);
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			color: var(--ink);
+			font-family: 'DM Sans', sans-serif;
+			background:
+				radial-gradient(circle at 15% 10%, rgba(255, 255, 255, .9) 0 8%, transparent 28%),
+				radial-gradient(circle at 85% 82%, rgba(255, 196, 216, .7) 0 9%, transparent 30%),
+				linear-gradient(140deg, #ffdce7 0%, #fff5f7 46%, #ffc5d7 100%);
+			overflow-x: hidden;
+		}
+
+		body::before, body::after {
+			content: '♡';
+			position: fixed;
+			z-index: -1;
+			color: rgba(255, 255, 255, .52);
+			font-family: Georgia, serif;
+			font-size: 13rem;
+			line-height: 1;
+		}
+
+		body::before { top: -4rem; left: -3rem; transform: rotate(-18deg); }
+		body::after { right: -4rem; bottom: -5rem; transform: rotate(15deg); }
+
+		.app {
+			display: grid;
+			min-height: 100vh;
+			place-items: center;
+			padding: 28px 20px;
+		}
+
+		.screen {
+			width: min(100%, 960px);
+			animation: arrive .6s ease both;
+		}
+
+		.hidden { display: none; }
+
+		.intro {
+			text-align: center;
+			padding: 30px 0;
+		}
+
+		.eyebrow {
+			display: inline-flex;
+			align-items: center;
+			gap: 9px;
+			margin-bottom: 21px;
+			color: var(--pink-hot);
+			font-size: .78rem;
+			font-weight: 700;
+			letter-spacing: .18em;
+			text-transform: uppercase;
+		}
+
+		.eyebrow::before, .eyebrow::after { content: '✦'; font-size: .65rem; }
+
+		h1, h2 { font-family: 'Playfair Display', Georgia, serif; }
+
+		h1 {
+			max-width: 730px;
+			margin: 0 auto 20px;
+			font-size: clamp(3.6rem, 10vw, 7.6rem);
+			line-height: .91;
+			letter-spacing: -.055em;
+			color: var(--ink);
+		}
+
+		.intro p {
+			max-width: 440px;
+			margin: 0 auto 35px;
+			color: var(--muted);
+			font-size: 1.05rem;
+			line-height: 1.65;
+		}
+
+		button {
+			border: 0;
+			font: inherit;
+			cursor: pointer;
+			transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+		}
+
+		button:hover { transform: translateY(-3px); }
+		button:focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; }
+
+		.primary {
+			padding: 16px 31px;
+			border-radius: 99px;
+			color: white;
+			background: var(--pink-hot);
+			box-shadow: 0 12px 25px rgba(232, 52, 105, .26);
+			font-weight: 700;
+			font-size: 1rem;
+		}
+
+		.primary:hover { background: #d9245a; box-shadow: 0 15px 30px rgba(232, 52, 105, .34); }
+
+		.game-shell {
+			padding: 24px 0;
+			text-align: center;
+		}
+
+		.game-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 27px; text-align: left; }
+		.game-top h2 { margin: 0 0 5px; font-size: clamp(2.3rem, 6vw, 4.5rem); line-height: .95; }
+		.game-top p { margin: 0; color: var(--muted); }
+
+		.back {
+			padding: 9px 0;
+			color: var(--pink-hot);
+			background: transparent;
+			font-size: .88rem;
+			font-weight: 700;
+			white-space: nowrap;
+		}
+
+		.arena {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 18px;
+		}
+
+		.player {
+			position: relative;
+			display: flex;
+			min-height: 430px;
+			flex-direction: column;
+			align-items: center;
+			justify-content: space-between;
+			padding: 29px 22px 25px;
+			border: 1px solid var(--line);
+			border-radius: 24px;
+			background: rgba(255, 250, 251, .73);
+			box-shadow: 0 20px 50px rgba(146, 58, 87, .1);
+			backdrop-filter: blur(10px);
+		}
+
+		.player h3 { margin: 0; font-size: 1.05rem; letter-spacing: .02em; }
+		.player small { color: var(--muted); font-size: .78rem; }
+
+		.heart-button {
+			position: relative;
+			width: min(62vw, 238px);
+			aspect-ratio: 1;
+			padding: 0;
+			color: white;
+			background: transparent;
+			font-size: clamp(7.5rem, 22vw, 12rem);
+			line-height: 1;
+			filter: drop-shadow(0 15px 12px rgba(216, 44, 93, .2));
+		}
+
+		.heart-button::before { content: '♥'; position: absolute; inset: 0; display: grid; place-items: center; }
+		.heart-button span { position: relative; z-index: 1; display: block; padding-top: 8px; color: white; font-family: 'DM Sans', sans-serif; font-size: clamp(1rem, 3vw, 1.35rem); font-weight: 700; }
+		.clickable { animation: pulse 2.1s ease-in-out infinite; }
+		.clickable:hover { transform: scale(1.08) rotate(-2deg); }
+		.clickable:active { transform: scale(.95); }
+		.locked { opacity: .73; filter: grayscale(.13) drop-shadow(0 13px 10px rgba(216, 44, 93, .13)); }
+
+		.score { color: var(--pink-hot); font-size: 2rem; font-weight: 700; }
+		.score-label { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .13em; }
+
+		.instructions { margin: 26px 0 0; color: var(--muted); font-size: .9rem; }
+		.instructions strong { color: var(--pink-hot); }
+
+		.status { min-height: 24px; margin-top: 20px; color: var(--pink-hot); font-weight: 700; }
+		.game-ready .heart-button { pointer-events: none; }
+		.game-ready .clickable { pointer-events: auto; }
+
+		.final-screen {
+			max-width: 760px;
+			margin: auto;
+			padding: 30px 0;
+			text-align: center;
+		}
+
+		.final-screen h2 {
+			margin: 0 auto 24px;
+			color: var(--pink-hot);
+			font-size: clamp(2.4rem, 7vw, 5.6rem);
+			line-height: 1;
+		}
+
+		.final-message {
+			margin: 0 auto;
+			color: var(--ink);
+			font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+			line-height: 1.7;
+		}
+
+		.final-message-late {
+			opacity: 0;
+			transform: translateY(14px);
+			animation: message-arrive .7s ease 2s forwards;
+		}
+
+		.final-heart {
+			display: block;
+			margin: 0 auto 20px;
+			color: var(--pink-hot);
+			font-size: 4.5rem;
+			line-height: 1;
+			animation: pulse 2.1s ease-in-out infinite;
+		}
+
+		@keyframes arrive { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+		@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.045); } }
+		@keyframes message-arrive { to { opacity: 1; transform: translateY(0); } }
+
+		@media (max-width: 620px) {
+			.app { padding: 18px 15px; }
+			.game-top { align-items: center; }
+			.arena { gap: 10px; }
+			.player { min-height: 330px; padding: 20px 10px; border-radius: 18px; }
+			.player h3 { font-size: .95rem; }
+			.heart-button { width: min(42vw, 170px); font-size: clamp(5rem, 22vw, 8rem); }
+			.score { font-size: 1.55rem; }
+		}
+	</style>
+</head>
+<body>
+	<main class="app">
+		<section class="screen intro" id="introScreen">
+			<div class="eyebrow">um jogo de amor</div>
+			<h1>Quem ama mais?</h1>
+			<p>Uma disputa delicada, intensa e completamente imparcial. Ou quase.</p>
+			<button class="primary" id="startButton">Começar <span aria-hidden="true">→</span></button>
+		</section>
+
+		<section class="screen game-shell hidden" id="gameScreen">
+			<div class="game-top">
+				<div>
+					<div class="eyebrow">a grande disputa</div>
+					<h2>Amor em números.</h2>
+					<p>Quem chegar primeiro a 1.000 cliques vence.</p>
+				</div>
+				<button class="back" id="backButton">← Voltar</button>
+			</div>
+
+			<div class="arena">
+				<article class="player">
+					<div><h3>Wini</h3><small>amor infinito</small></div>
+					<button class="heart-button locked" aria-label="Coração de Wini" disabled><span>Wini</span></button>
+					<div><div class="score" id="winiScore">0</div><div class="score-label">cliques</div></div>
+				</article>
+				<article class="player">
+					<div><h3>Linne</h3><small>clique para amar</small></div>
+					<button class="heart-button clickable" id="linneHeart" aria-label="Clicar no coração de Linne"><span>Linne</span></button>
+					<div><div class="score" id="linneScore">0</div><div class="score-label">cliques</div></div>
+				</article>
+			</div>
+			<p class="instructions" id="instructions">Aperte <strong>Jogar</strong> para começar a disputa.</p>
+			<button class="primary" id="playButton">Jogar <span aria-hidden="true">♡</span></button>
+			<div class="status" id="status" role="status" aria-live="polite"></div>
+		</section>
+
+		<section class="screen final-screen hidden" id="finalScreen">
+			<span class="final-heart" aria-hidden="true">♥</span>
+			<div class="eyebrow">resultado oficial</div>
+			<h2>Eu acho que amo mais você, Caroline.</h2>
+			<p class="final-message final-message-late">Quero cuidar de você para todo o sempre, quero construir um futuro, ser seu bebê para sempre e nunca te machucar e magoar com as minhas atitudes, a ultima coisa que quero é te machucar de novo, ja pensei varias vezes em terminar tudo para não ter chances de machucar e decepcionar você mais uma vezes mas vi que você não desistiu de mim, então ou você é muito doida para não ter ido embora ainda ou você me ama de verdade e acredita que eu possa mudar, e escrevendo esse texto vejo que quem ama mais é você mesmo skskskkssksks, mas sabia que EU AMO MUITAOOOOOOOOOOOO🩷🩷🩷</p>
+		</section>
+	</main>
+
+	<script>
+		const introScreen = document.getElementById('introScreen');
+		const gameScreen = document.getElementById('gameScreen');
+		const finalScreen = document.getElementById('finalScreen');
+		const startButton = document.getElementById('startButton');
+		const backButton = document.getElementById('backButton');
+		const playButton = document.getElementById('playButton');
+		const linneHeart = document.getElementById('linneHeart');
+		const instructions = document.getElementById('instructions');
+		const status = document.getElementById('status');
+		const winiScoreElement = document.getElementById('winiScore');
+		const linneScoreElement = document.getElementById('linneScore');
+		let winiScore = 0;
+		let linneScore = 0;
+		let gameStarted = false;
+		let winiTimer;
+
+		function showGame() {
+			introScreen.classList.add('hidden');
+			gameScreen.classList.remove('hidden');
+		}
+
+		function resetGame() {
+			clearInterval(winiTimer);
+			winiScore = 0;
+			linneScore = 0;
+			gameStarted = false;
+			winiScoreElement.textContent = '0';
+			linneScoreElement.textContent = '0';
+			linneHeart.disabled = false;
+			playButton.classList.remove('hidden');
+			instructions.textContent = 'Aperte Jogar para começar a disputa.';
+			status.textContent = '';
+		}
+
+		function startGame() {
+			playButton.classList.add('hidden');
+			gameStarted = true;
+			instructions.innerHTML = 'Clique no coração de <strong>Linne</strong>!';
+			status.textContent = '';
+			winiTimer = setInterval(() => updateWini(1), 1000);
+		}
+
+		function updateWini(amount) {
+			if (!gameStarted) return;
+			winiScore = Math.min(1000, winiScore + amount);
+			winiScoreElement.textContent = winiScore;
+			if (winiScore >= 1000) finishGame();
+		}
+
+		function finishGame() {
+			gameStarted = false;
+			clearInterval(winiTimer);
+			linneHeart.disabled = true;
+			gameScreen.classList.add('hidden');
+			finalScreen.classList.remove('hidden');
+		}
+
+		startButton.addEventListener('click', showGame);
+		playButton.addEventListener('click', startGame);
+		backButton.addEventListener('click', () => {
+			resetGame();
+			gameScreen.classList.add('hidden');
+			introScreen.classList.remove('hidden');
+		});
+		linneHeart.addEventListener('click', () => {
+			if (!gameStarted) return;
+			linneScore = Math.min(999, linneScore + 1);
+			linneScoreElement.textContent = linneScore;
+			updateWini(2);
+		});
+	</script>
+</body>
+</html>
+git add index.html
+git commit -m "Adiciona site"
+git pushgit add index.html
+git commit -m "Adiciona site"
+git push
